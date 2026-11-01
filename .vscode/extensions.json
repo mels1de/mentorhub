@@ -1,0 +1,32 @@
+{
+  // Recommended extensions for Cursor / VS Code. IDs verified on Open VSX (2026-10-31).
+  "recommendations": [
+    // Python (backend)
+    "ms-python.python",
+    "charliermarsh.ruff",
+    "ms-python.mypy-type-checker",
+
+    // Vue / TypeScript (frontend)
+    "Vue.volar",
+    "dbaeumer.vscode-eslint",
+    "oxc.oxc-vscode",
+    "esbenp.prettier-vscode",
+    "bradlc.vscode-tailwindcss",
+    "vitest.explorer",
+
+    // Infra & config files
+    "ms-azuretools.vscode-containers",
+    "redhat.vscode-yaml",
+    "tamasfe.even-better-toml",
+    "github.vscode-github-actions",
+    "EditorConfig.EditorConfig"
+  ],
+  // Ruff replaces these; having them enabled gives duplicate or conflicting diagnostics.
+  "unwantedRecommendations": [
+    "ms-python.black-formatter",
+    "ms-python.isort",
+    "ms-python.flake8",
+    "ms-python.pylint",
+    "ms-azuretools.vscode-docker"
+  ]
+}

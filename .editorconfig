@@ -1,0 +1,22 @@
+# Basic whitespace rules for every editor (https://editorconfig.org).
+# Formatters (Ruff, Prettier) own the code style; this file covers what they don't touch.
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+indent_style = space
+indent_size = 2
+
+[*.py]
+indent_size = 4
+
+# Two trailing spaces are a hard line break in Markdown.
+[*.md]
+trim_trailing_whitespace = false
+
+# Make requires tabs for recipe lines.
+[Makefile]
+indent_style = tab

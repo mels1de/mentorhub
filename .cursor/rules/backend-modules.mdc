@@ -1,0 +1,56 @@
+---
+description: Structure and patterns for backend feature modules (router/service/repository)
+globs: backend/app/modules/**
+alwaysApply: false
+---
+# Feature module pattern
+
+Files per module: models.py, schemas.py, repository.py, service.py, dependencies.py,
+router.py (+ tasks.py, exceptions.py when needed). Register models in `app/models.py` and
+the router in `app/api/router.py`.
+
+Shape to follow (names are examples):
+
+```python
+# repository.py — queries only, receives the session, never commits
+class SkillRepository:
+    def __init__(self, session: AsyncSession) -> None:
+        self.session = session
+
+    async def get(self, skill_id: UUID) -> Skill | None:
+        return await self.session.get(Skill, skill_id)
+
+    async def list(self, *, offset: int, limit: int) -> tuple[list[Skill], int]: ...
+
+# service.py — business rules, owns the transaction, raises AppError subclasses
+class SkillService:
+    def __init__(self, session: AsyncSession) -> None:
+        self.session = session
+        self.repo = SkillRepository(session)
+
+    async def create(self, data: SkillCreate) -> Skill:
+        async with self.session.begin():
+            if await self.repo.get_by_name(data.name):
+                raise ConflictError("Skill already exists")
+            return await self.repo.add(Skill(**data.model_dump()))
+
+# dependencies.py
+def get_skill_service(session: Annotated[AsyncSession, Depends(get_db_session)]) -> SkillService:
+    return SkillService(session)
+
+# router.py — thin
+router = APIRouter(prefix="/skills", tags=["skills"])
+
+@router.post("", status_code=201, response_model=SkillRead)
+async def create_skill(
+    data: SkillCreate, service: Annotated[SkillService, Depends(get_skill_service)]
+) -> Skill:
+    return await service.create(data)
+```
+
+- Authorization checks live in the service (or a dependency like `require_role`), not in
+  the repository.
+- Status codes: 201 create, 204 delete, 200 otherwise. Lists return `Page[XRead]` or
+  `CursorPage[XRead]`.
+- Add `summary=` to routes and `Field(description=..., examples=[...])` to schemas: Swagger
+  is part of the thesis demo.

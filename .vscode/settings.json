@@ -1,0 +1,60 @@
+{
+  // Workspace settings: apply only to this repo, override user settings.
+  // Setting keys verified against the extensions' manifests (2026-10-31).
+
+  "editor.formatOnSave": true,
+  "files.eol": "\n",
+
+  // ---------- Python (backend) ----------
+  "python.defaultInterpreterPath": "${workspaceFolder}/backend/.venv/bin/python",
+  "[python]": {
+    "editor.defaultFormatter": "charliermarsh.ruff",
+    "editor.codeActionsOnSave": {
+      "source.fixAll.ruff": "explicit",
+      "source.organizeImports.ruff": "explicit"
+    }
+  },
+  // Use the Ruff/mypy versions pinned in backend/uv.lock, same as CI.
+  "ruff.importStrategy": "fromEnvironment",
+  "mypy-type-checker.importStrategy": "fromEnvironment",
+  "mypy-type-checker.cwd": "${workspaceFolder}/backend",
+  "python.testing.pytestEnabled": true,
+  "python.testing.cwd": "${workspaceFolder}/backend",
+  "python.testing.pytestArgs": ["tests"],
+
+  // ---------- Frontend ----------
+  // Format only where a Prettier config exists (frontend/), never with Prettier defaults.
+  "prettier.requireConfig": true,
+  "[typescript][javascript][vue][json][jsonc][css][html]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.codeActionsOnSave": {
+      "source.fixAll.eslint": "explicit"
+    }
+  },
+  "eslint.workingDirectories": [{ "mode": "auto" }],
+  // Tailwind 4 directives (@theme, @custom-variant) are not plain CSS.
+  "files.associations": {
+    "*.css": "tailwindcss"
+  },
+
+  // ---------- Noise ----------
+  "files.exclude": {
+    "**/__pycache__": true,
+    "**/.pytest_cache": true,
+    "**/.mypy_cache": true,
+    "**/.ruff_cache": true
+  },
+  "search.exclude": {
+    "**/node_modules": true,
+    "**/.venv": true,
+    "**/dist": true,
+    "**/htmlcov": true,
+    "**/coverage": true,
+    "**/*.lock": true,
+    "**/package-lock.json": true
+  },
+  "files.watcherExclude": {
+    "**/node_modules/**": true,
+    "**/.venv/**": true
+  }
+}

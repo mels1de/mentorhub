@@ -1,0 +1,16 @@
+---
+description: How tests are written in this repo
+globs: backend/tests/**, frontend/src/**/__tests__/**
+alwaysApply: false
+---
+# Tests
+
+- Backend: async tests (asyncio_mode=auto). Fixtures in tests/conftest.py (`settings`,
+  `app`, `client`). Override dependencies with `app.dependency_overrides`.
+- Name tests as behaviour: `test_booking_overlapping_slot_is_rejected`.
+- Per endpoint cover: success, validation (422), unauthenticated (401), forbidden (403),
+  not found (404), conflict (409) where relevant. Assert Problem Details `status`/`type`.
+- External services: inject fakes implementing the port Protocol. Never hit real APIs.
+- Integration tests touching Postgres/Redis get `pytestmark = pytest.mark.integration`.
+- Frontend: Vitest + Vue Test Utils; mock the `src/api` function, not axios internals;
+  select elements by `data-testid`.

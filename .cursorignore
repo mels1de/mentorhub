@@ -1,0 +1,23 @@
+# Files Cursor AI (Agent, Tab, @-mentions) must not read.
+# https://cursor.com/docs/context/ignore-files
+# Cursor already ignores everything in .gitignore plus its defaults (.env*, lockfiles,
+# node_modules/, .venv/, caches, binaries). This file only adds and overrides.
+# Not a security boundary: Agent's terminal and MCP tools can still read these files.
+
+# ---------- secrets (defense in depth, also in .gitignore) ----------
+.env
+.env.*
+**/.env
+**/.env.*
+*.pem
+*.key
+*.p12
+*.crt
+**/secrets*.yaml
+**/secrets*.json
+!**/secrets.example.yaml
+
+# ---------- overrides: templates the AI should see ----------
+# `.env*` from the defaults would hide the settings template we keep in sync with Settings.
+!.env.example
+!**/.env.example

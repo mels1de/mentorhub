@@ -1,0 +1,17 @@
+---
+description: Vue 3 + TypeScript frontend conventions
+globs: frontend/src/**
+alwaysApply: false
+---
+# Frontend
+
+- `<script setup lang="ts">`, typed `defineProps<...>()` / `defineEmits<...>()`.
+- Data from the API: TanStack Query. Query keys as arrays: `['mentors', filters]`.
+  Mutations invalidate the affected keys. Polling: `refetchInterval`. Pagination:
+  `placeholderData: keepPreviousData` to avoid flicker.
+- Pinia stores (setup syntax) only for client state: `useAuthStore`, `useUiStore`.
+- Never call axios directly in components; add a function in `src/api/` or
+  `src/features/<f>/api.ts` using the shared `http` instance and generated types.
+- Handle Problem Details errors with `isProblem()`; show `detail` or field errors.
+- Accessibility: labels for inputs, buttons are `<button>`, focus states visible.
+- Lazy-load route components: `component: () => import(...)`.

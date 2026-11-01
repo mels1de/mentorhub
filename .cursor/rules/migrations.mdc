@@ -1,0 +1,16 @@
+---
+description: Alembic migration rules
+globs: backend/migrations/**
+alwaysApply: false
+---
+# Migrations
+
+- Generate with `make revision m="..."`, then READ the file: autogenerate misses renames
+  (it drops + creates), server defaults, enum changes and extensions.
+- Every migration has a working `downgrade()`. CI runs upgrade → downgrade → upgrade.
+- Never import app models into migrations (they change later and break old revisions);
+  use `op` / `sa` constructs or `sa.table()` for data migrations.
+- Adding a NOT NULL column to a table with data: add nullable → backfill → set NOT NULL.
+- Large-table indexes: `op.create_index(..., postgresql_concurrently=True)` inside
+  `with op.get_context().autocommit_block():`.
+- Never edit a migration that is already on `main`; write a new one.

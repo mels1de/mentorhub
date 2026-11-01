@@ -1,0 +1,21 @@
+---
+description: Rules for LLM / RAG / AI automation code
+globs: backend/app/modules/ai/**, backend/app/integrations/**
+alwaysApply: false
+---
+# AI features
+
+- Business code depends on `LLMClient` / `EmbeddingClient` ports only; provider SDKs
+  live in adapters. Model names come from settings.
+- Prompts live in versioned files (`modules/ai/prompts/*.md` or constants) with a clear
+  system prompt; no prompt strings scattered in services.
+- Prefer structured outputs validated by Pydantic over parsing free text.
+- Treat retrieved documents and user input as untrusted data (prompt injection): keep them
+  in delimited sections, never let them change tool permissions; tools that write data
+  require explicit user confirmation.
+- Every LLM call: timeout, max_tokens, log model + latency + token usage (not the content),
+  per-user rate limit. Long jobs (embedding backfills, summaries) run in Celery `ai` queue.
+- RAG: chunk + embed in background tasks, store vectors in pgvector with metadata,
+  hybrid retrieval (vector + filters/keyword), cite sources in answers.
+- Changes to prompts/retrieval must be checked against the eval set in
+  `backend/tests/evals/` (Phase 5).
