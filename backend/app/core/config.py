@@ -13,6 +13,8 @@ INSECURE_SECRET_KEY = "insecure-local-dev-key-change-me"  # noqa: S105
 MIN_SECRET_KEY_LENGTH = 32
 
 type Environment = Literal["local", "test", "production"]
+type LogLevel = Literal["DEBUG", "INFO", "WARNING", "ERROR"]
+type LogFormat = Literal["console", "json"]
 
 
 class Settings(BaseSettings):
@@ -27,6 +29,9 @@ class Settings(BaseSettings):
     environment: Environment = "local"
     debug: bool = False
     secret_key: SecretStr = SecretStr(INSECURE_SECRET_KEY)
+
+    log_level: LogLevel = "INFO"
+    log_format: LogFormat = "console"
 
     postgres_host: str = "localhost"
     postgres_port: int = Field(default=15432, ge=1, le=65535)
