@@ -13,3 +13,4 @@ decision → alternatives → consequences. New decision = new file, never rewri
 | [0005](0005-auth-tokens.md) | Short-lived JWT + rotating refresh tokens in Redis | Accepted |
 | [0006](0006-tooling.md) | Python 3.14 + uv, Vue 3 + TypeScript + TanStack Query | Accepted |
 | [0007](0007-local-dev-workflow.md) | Local dev: backend + services in Docker, frontend on the host | Accepted |
+| [0008](0008-settings-flat-env.md) | Typed settings from flat env vars and one root `.env` | Accepted |
