@@ -50,8 +50,9 @@ classes). Prefer a working thin slice over a half-built big one.
   service · dependencies · router` (+ `tasks`, `exceptions`). Flow: router → service →
   repository → DB. Modules talk to each other only through services.
 - Async everywhere, full typing (mypy strict), Ruff for lint + format.
-- Schemas `XCreate / XUpdate / XRead`; every route has `response_model`; never expose ORM
-  objects or secrets.
+- Schemas `XCreate / XUpdate / XRead`; every route declares its response type via the
+  return annotation (`response_model=` only when the returned object differs from it, e.g.
+  ORM → `XRead`; ruff `FAST001`); never expose ORM objects or secrets.
 - Errors: domain `AppError` subclasses → RFC 9457 Problem Details. No `HTTPException`
   inside services.
 - Config only via a typed `Settings` (pydantic-settings); new setting ⇒ `.env.example`.

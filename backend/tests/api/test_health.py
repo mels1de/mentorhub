@@ -43,7 +43,11 @@ async def test_live_passes(client: AsyncClient) -> None:
     assert "X-Request-ID" in response.headers
 
 
-async def test_ready_passes_without_checks(client: AsyncClient) -> None:
+async def test_ready_passes_without_checks(
+    client: AsyncClient, use_checks: Callable[..., None]
+) -> None:
+    use_checks()
+
     response = await client.get("/health/ready")
 
     assert response.status_code == 200

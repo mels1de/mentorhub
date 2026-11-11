@@ -5,6 +5,10 @@ from typing import Annotated, Literal, Protocol
 import structlog
 from fastapi import APIRouter, Depends, Response, status
 from pydantic import BaseModel
+from sqlalchemy.ext.asyncio import AsyncEngine
+
+from app.db.health import DatabaseCheck
+from app.db.session import get_engine
 
 logger = structlog.stdlib.get_logger(__name__)
 
@@ -31,8 +35,8 @@ class ReadyResponse(BaseModel):
     checks: dict[str, CheckStatus]
 
 
-def get_health_checks() -> Sequence[HealthCheck]:
-    return ()
+def get_health_checks(engine: Annotated[AsyncEngine, Depends(get_engine)]) -> Sequence[HealthCheck]:
+    return (DatabaseCheck(engine),)
 
 
 router = APIRouter(prefix="/health", tags=["health"])
