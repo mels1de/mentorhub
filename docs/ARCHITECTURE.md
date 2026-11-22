@@ -100,7 +100,7 @@ erDiagram
 | Logging | `core/logging.py`, `core/middleware.py` | structlog, JSON in containers, `request_id` on every line |
 | Metrics | `main.py` | Prometheus instrumentator: RPS, latency histograms, status classes |
 | Health | `api/health.py` | `/health/live` (process) vs `/health/ready` (dependencies) |
-| Pagination | `core/pagination.py` | Offset `Page[T]` for catalogs, keyset `CursorPage[T]` for feeds |
+| Pagination | `core/pagination.py` (schemas, cursor codec), `db/pagination.py` (queries) | Offset `Page[T]` for catalogs, keyset `CursorPage[T]` (opaque cursor, `limit + 1`) for feeds |
 | Auth | `modules/auth` (Phase 1) | Short-lived JWT access + rotating refresh in Redis, RBAC dependencies |
 | Caching | services (Phase 2) | Cache-aside in Redis, versioned keys, explicit invalidation |
 | Background work | `worker/` | Celery, acks-late, idempotent tasks, separate queues by latency class |

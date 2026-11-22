@@ -10,6 +10,7 @@ from app.core.logging import configure_logging
 from app.core.metrics import setup_metrics
 from app.core.middleware import RequestIdMiddleware, UnhandledExceptionMiddleware
 from app.core.problem_details import register_exception_handlers
+from app.db.redis import create_redis
 from app.db.session import create_engine, create_session_factory
 
 logger = structlog.stdlib.get_logger(__name__)
@@ -21,10 +22,12 @@ def make_lifespan(settings: Settings) -> Callable[[FastAPI], AbstractAsyncContex
         engine = create_engine(settings)
         app.state.engine = engine
         app.state.session_factory = create_session_factory(engine)
+        app.state.redis = create_redis(settings)
         logger.info("startup", app=app.title)
         try:
             yield
         finally:
+            await app.state.redis.aclose()
             await engine.dispose()
             logger.info("shutdown", app=app.title)
 

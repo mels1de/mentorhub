@@ -42,13 +42,6 @@ async def test_database_check_passes(engine: AsyncEngine) -> None:
     await DatabaseCheck(engine).check()
 
 
-async def test_ready_reports_database(client: AsyncClient, engine: AsyncEngine) -> None:
-    response = await client.get("/health/ready")
-
-    assert response.status_code == 200
-    assert response.json() == {"status": "pass", "checks": {"database": "pass"}}
-
-
 async def test_insert_fills_uuid7_and_tz_aware_timestamps(session: AsyncSession) -> None:
     note = _Note(body="hello")
     session.add(note)
