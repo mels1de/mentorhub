@@ -11,6 +11,8 @@ from app.core.problem_details import problem_response
 REQUEST_ID_HEADER = "X-Request-ID"
 # Incoming IDs end up in logs: a strict whitelist prevents log injection.
 VALID_REQUEST_ID = re.compile(r"[A-Za-z0-9._-]{1,64}")
+# Probes and Prometheus scrapes arrive every few seconds; only their failures are worth a line.
+QUIET_PATH_PREFIXES = ("/health/", "/metrics")
 
 access_logger = structlog.stdlib.get_logger("mentorhub.access")
 error_logger = structlog.stdlib.get_logger("mentorhub.errors")
@@ -42,13 +44,14 @@ class RequestIdMiddleware:
             try:
                 await self.app(scope, receive, send_with_request_id)
             finally:
-                access_logger.info(
-                    "request",
-                    method=scope["method"],
-                    path=scope["path"],  # no query string: it may carry tokens
-                    status=status_code,
-                    duration_ms=round((time.perf_counter() - started) * 1000, 2),
-                )
+                if status_code >= 400 or not scope["path"].startswith(QUIET_PATH_PREFIXES):
+                    access_logger.info(
+                        "request",
+                        method=scope["method"],
+                        path=scope["path"],  # no query string: it may carry tokens
+                        status=status_code,
+                        duration_ms=round((time.perf_counter() - started) * 1000, 2),
+                    )
 
     @staticmethod
     def _incoming_request_id(scope: Scope) -> str | None:

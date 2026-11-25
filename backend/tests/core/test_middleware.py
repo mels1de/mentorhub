@@ -7,7 +7,7 @@ from uuid import UUID
 import pytest
 import structlog
 from fastapi import FastAPI
-from fastapi.responses import StreamingResponse
+from fastapi.responses import Response, StreamingResponse
 from httpx import AsyncClient
 
 from app.core.problem_details import PROBLEM_JSON
@@ -35,6 +35,10 @@ def routes(app: FastAPI) -> None:
             raise RuntimeError("stream broke")
 
         return StreamingResponse(chunks())
+
+    @app.get("/health/broken")
+    async def broken_probe() -> Response:
+        return Response(status_code=503)
 
 
 def access_records(caplog: pytest.LogCaptureFixture) -> list[dict[str, Any]]:
@@ -80,6 +84,29 @@ async def test_access_log_has_request_id_status_and_duration(
     assert record["status"] == response.status_code == 200
     assert record["path"] == "/ping"
     assert record["duration_ms"] >= 0
+
+
+@pytest.mark.parametrize("path", ["/health/live", "/metrics"])
+async def test_successful_probes_are_not_access_logged(
+    client: AsyncClient, caplog: pytest.LogCaptureFixture, path: str
+) -> None:
+    caplog.set_level(logging.INFO)
+
+    response = await client.get(path)
+
+    assert response.status_code == 200
+    assert access_records(caplog) == []
+
+
+async def test_failing_probe_is_access_logged(
+    client: AsyncClient, caplog: pytest.LogCaptureFixture
+) -> None:
+    caplog.set_level(logging.INFO)
+
+    await client.get("/health/broken")
+
+    [record] = access_records(caplog)
+    assert record["status"] == 503
 
 
 async def test_concurrent_requests_keep_their_own_request_id(client: AsyncClient) -> None:

@@ -1,6 +1,92 @@
 name: mentorhub
 
+# Shared by every service that runs the backend image (API, migrations, worker, beat).
+x-backend: &backend
+  build:
+    context: ./backend
+    target: dev
+  image: mentorhub/backend:dev
+  env_file:
+    - path: .env
+      required: false
+  # Overrides .env: inside the Compose network services are reached by name on default ports.
+  environment:
+    POSTGRES_HOST: db
+    POSTGRES_PORT: 5432
+    REDIS_HOST: redis
+    REDIS_PORT: 6379
+    RABBITMQ_HOST: rabbitmq
+    RABBITMQ_PORT: 5672
+  volumes:
+    - ./backend:/app
+
 services:
+  migrate:
+    <<: *backend
+    command: ["alembic", "upgrade", "head"]
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: "no"
+
+  backend:
+    <<: *backend
+    ports:
+      - "127.0.0.1:${API_PORT:-18000}:8000"
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health/live', timeout=2)
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 10s
+    restart: unless-stopped
+
+  worker:
+    <<: *backend
+    # watchfiles restarts the worker on code changes, like uvicorn --reload does for the API.
+    command:
+      - watchfiles
+      - --filter
+      - python
+      - celery -A app.worker.celery_app:celery_app worker -Q default,emails,ai --loglevel INFO
+      - app
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    restart: unless-stopped
+
+  beat:
+    <<: *backend
+    # Schedule state goes to /tmp so it never lands in the bind-mounted repo.
+    command:
+      - celery
+      - -A
+      - app.worker.celery_app:celery_app
+      - beat
+      - --schedule
+      - /tmp/celerybeat-schedule
+      - --loglevel
+      - INFO
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    restart: unless-stopped
+
   db:
     build: ./infra/postgres
     image: mentorhub/postgres:17
