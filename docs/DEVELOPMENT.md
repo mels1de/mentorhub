@@ -109,6 +109,6 @@ Queues and messages: RabbitMQ UI on <http://localhost:15673> (`mentorhub` / `men
 ## CI
 
 `.github/workflows/ci.yml` runs on every PR and on `main`: backend (ruff, mypy, migrations
-round-trip, pytest with Postgres + Redis), frontend (lint, format, type-check, Vitest,
+round-trip, pytest with Postgres, Redis, RabbitMQ), frontend (lint, format, type-check, Vitest,
 build), actionlint, and builds both prod images (pushed to GHCR only from `main`).
 Dependabot opens one grouped PR per ecosystem weekly.

@@ -31,9 +31,9 @@ jobs:
       - run: uv run ruff check .
       - run: uv run ruff format --check .
       - run: uv run mypy .
-      - name: Start Postgres and Redis
+      - name: Start Postgres, Redis and RabbitMQ
         working-directory: .
-        run: docker compose up -d --wait db redis
+        run: docker compose up -d --wait db redis rabbitmq
       - name: Migrations apply, roll back and re-apply
         run: |
           uv run alembic upgrade head
@@ -44,7 +44,7 @@ jobs:
       - name: Service logs on failure
         if: failure()
         working-directory: .
-        run: docker compose logs db redis
+        run: docker compose logs db redis rabbitmq
 
   frontend:
     runs-on: ubuntu-latest
