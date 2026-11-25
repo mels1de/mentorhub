@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 
-FROM node:24.22.2-alpine AS deps
+FROM node:26.13.1-alpine AS deps
 WORKDIR /app
 RUN --mount=type=bind,source=package.json,target=package.json \
     --mount=type=bind,source=package-lock.json,target=package-lock.json \
@@ -11,7 +11,7 @@ FROM deps AS build
 COPY . .
 RUN npm run build
 
-FROM nginxinc/nginx-unprivileged:1.30-alpine AS prod
+FROM nginxinc/nginx-unprivileged:1.31-alpine AS prod
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 COPY --from=build /app/dist /usr/share/nginx/html
 EXPOSE 8080
