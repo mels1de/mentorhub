@@ -29,6 +29,10 @@ Feature modules add their own codes here when they subclass these.
 `422`. Request failed schema validation. Extension `errors: [{loc, msg, type}]`; submitted
 values are never echoed back.
 
+## invalid_cursor
+`422`. The pagination `cursor` is malformed, tampered with, or from another endpoint. Restart
+from the first page (omit `cursor`).
+
 ## business_rule_violation
 `422`. Input is well-formed but breaks a domain rule.
 
@@ -43,3 +47,9 @@ values are never echoed back.
 
 ## conflict
 `409`. The request conflicts with the current state (duplicate, concurrent change).
+
+## upstream_error
+`502`. An external service (storage, email, captcha, maps, LLM) returned an unusable answer.
+
+## upstream_unavailable
+`503`. An external service timed out or is down. Safe to retry later.

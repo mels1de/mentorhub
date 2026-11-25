@@ -49,6 +49,29 @@ class Settings(BaseSettings):
             f"@{self.postgres_host}:{self.postgres_port}/{self.postgres_db}"
         )
 
+    redis_host: str = "localhost"
+    redis_port: int = Field(default=16379, ge=1, le=65535)
+
+    @property
+    def redis_url(self) -> str:
+        return f"redis://{self.redis_host}:{self.redis_port}/0"
+
+    @property
+    def celery_result_backend_url(self) -> str:
+        # Separate logical DB, so FLUSHDB on the cache never wipes task results (and vice versa).
+        return f"redis://{self.redis_host}:{self.redis_port}/1"
+
+    rabbitmq_host: str = "localhost"
+    rabbitmq_port: int = Field(default=15672, ge=1, le=65535)
+    rabbitmq_user: str = "mentorhub"
+    rabbitmq_password: SecretStr = SecretStr("mentorhub")
+
+    @property
+    def celery_broker_url(self) -> str:
+        user = quote(self.rabbitmq_user, safe="")
+        password = quote(self.rabbitmq_password.get_secret_value(), safe="")
+        return f"amqp://{user}:{password}@{self.rabbitmq_host}:{self.rabbitmq_port}//"
+
     @model_validator(mode="after")
     def _refuse_insecure_production_config(self) -> Self:
         if self.environment != "production":

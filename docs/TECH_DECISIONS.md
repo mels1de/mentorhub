@@ -13,9 +13,9 @@ Use them as the starting point; `uv add` / `npm install` will pick the latest co
 | FastAPI | 0.162 | |
 | Pydantic / pydantic-settings | 2.14 / 2.16 | `SecretStr` for secrets; `NoDecode` + validator to accept comma-separated `CORS_ORIGINS`. |
 | SQLAlchemy | **2.1** (async) + asyncpg 0.32 | `async_sessionmaker(expire_on_commit=False)`; naming convention on `MetaData` for Alembic. |
-| Alembic | 1.20 | Async `env.py`; URL from Settings, not alembic.ini; ruff post-write hook. |
+| Alembic | 1.20 | Async `env.py`; config in `[tool.alembic]` (no `alembic.ini`), URL from Settings, logs via structlog; ruff post-write hooks. PostGIS creates `spatial_ref_sys` in `public` → `include_name` filter, or autogenerate proposes dropping it. Models must be imported in `app/models.py`. |
 | Redis client | redis-py 8.1 (`redis.asyncio`) | |
-| Celery | 5.6 | RabbitMQ broker, Redis result backend; `celery-types` for mypy. |
+| Celery | 5.7 | RabbitMQ broker, Redis result backend (DB 1; cache uses DB 0); `celery-types` for mypy. Queue layout: [ADR-0009](adr/0009-celery-queue-topology.md). |
 | structlog | 26.x | JSON in containers, console locally; route stdlib/uvicorn logs through it. |
 | Metrics | prometheus-fastapi-instrumentator 8.1 | `/metrics`, exclude `/health` and `/metrics` from instrumentation. |
 | Passwords | `pwdlib[argon2]` | passlib is unmaintained; FastAPI docs moved to pwdlib. |
@@ -42,7 +42,7 @@ Use them as the starting point; `uv add` / `npm install` will pick the latest co
 | Redis **8** (`redis:8-alpine`) | `--appendonly yes`. |
 | RabbitMQ **4** (`rabbitmq:4-management-alpine`) | UI on 15672; `rabbitmq-diagnostics -q ping` healthcheck; Prometheus plugin on 15692. |
 | S3 locally: **RustFS** (`rustfs/rustfs`) | **MinIO community edition is discontinued** — Docker Hub images removed, repo archived (2026). RustFS: env `RUSTFS_ACCESS_KEY`, `RUSTFS_SECRET_KEY`, `RUSTFS_ADDRESS=:9000`, `RUSTFS_CONSOLE_ADDRESS=:9001`, `RUSTFS_CONSOLE_ENABLE=true`, data in `/data`, runs as UID 10001. Create the bucket with a one-shot `amazon/aws-cli` container. Prod: AWS S3 or Cloudflare R2. |
-| Email locally: **Mailpit** (`axllent/mailpit`) | SMTP 1025, UI 8025. |
+| Email locally: **Mailpit** (`axllent/mailpit`) | SMTP 1025, UI 8025; built-in `HEALTHCHECK`. |
 | Observability | Prometheus + Grafana (provisioned datasource + dashboard JSON) + alert rules; Flower for Celery; Sentry later. |
 | Local LLM | Ollama (optional Compose profile). |
 | Container runtime on Mac | OrbStack or Docker Desktop. |
@@ -59,8 +59,9 @@ Use them as the starting point; `uv add` / `npm install` will pick the latest co
   (prod frontend image); `observability` (Prometheus, Grafana, Flower); `ai` (Ollama).
 - **Host ports:** bound to `127.0.0.1` and **offset from defaults** so the stack coexists
   with other local projects (a host Postgres on 5432, dev servers on 3000):
-  Postgres `15432`, Redis `16379`, RabbitMQ `15673` (UI) / AMQP not published, API `8000`,
-  Vite `5173`, Mailpit UI `8025`, RustFS `19000`/`19001`. Inside the Compose network
+  Postgres `15432`, Redis `16379`, RabbitMQ AMQP `15672` / UI `15673`, API `8000`,
+  Vite `5173`, Mailpit UI `8025` / SMTP `11025`, RustFS `19000`/`19001`. AMQP and SMTP are
+  published so the API and a worker can also run on the host. Inside the Compose network
   services use their normal ports. Final list confirmed in Session 0.5.
 - **Isolation rule:** only project-scoped Docker commands (`make`, `docker compose ...`
   in this repo); never global `docker ... prune`.
@@ -108,6 +109,13 @@ Use them as the starting point; `uv add` / `npm install` will pick the latest co
   otherwise one hanging dependency hangs the probe.
 - In Celery, `task_acks_late=True` + `worker_prefetch_multiplier=1` +
   `task_reject_on_worker_lost=True` → at-least-once delivery ⇒ tasks must be idempotent.
+- `celery.contrib.testing.worker.start_worker`: the embedded worker's event loop can sleep
+  in `poll()` up to 10 s, so teardown races `shutdown_timeout`. Send
+  `app.control.shutdown(destination=[name])` before leaving the context to wake it.
+- Celery's Redis result backend calls `setex`, deprecated in redis-py 8 → harmless
+  `DeprecationWarning` until Celery updates.
+- RabbitMQ `hostname:` must be fixed in Compose: the node name `rabbit@<hostname>` keys the
+  data directory, a random container hostname loses durable queues on recreate.
 - Desktop/Documents on this Mac may sync to iCloud — keep the repo in `~/Projects/`
   (not synced) or `node_modules` / `.venv` will be uploaded endlessly.
 

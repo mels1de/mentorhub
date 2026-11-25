@@ -70,3 +70,16 @@ def test_get_settings_is_cached() -> None:
     get_settings.cache_clear()
 
     assert get_settings() is get_settings()
+
+
+def test_broker_url_escapes_special_characters() -> None:
+    settings = make_settings(rabbitmq_password=SecretStr("p@ss/w:rd"))
+
+    assert settings.celery_broker_url == "amqp://mentorhub:p%40ss%2Fw%3Ard@localhost:15672//"
+
+
+def test_cache_and_task_results_use_separate_redis_dbs() -> None:
+    settings = make_settings(redis_host="redis", redis_port=6379)
+
+    assert settings.redis_url == "redis://redis:6379/0"
+    assert settings.celery_result_backend_url == "redis://redis:6379/1"
