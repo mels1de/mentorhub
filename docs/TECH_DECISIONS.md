@@ -59,7 +59,7 @@ Use them as the starting point; `uv add` / `npm install` will pick the latest co
   (prod frontend image); `observability` (Prometheus, Grafana, Flower); `ai` (Ollama).
 - **Host ports:** bound to `127.0.0.1` and **offset from defaults** so the stack coexists
   with other local projects (a host Postgres on 5432, dev servers on 3000):
-  Postgres `15432`, Redis `16379`, RabbitMQ AMQP `15672` / UI `15673`, API `18000`,
+  Postgres `15432`, Redis `16379`, RabbitMQ AMQP `15672` / UI `15673`, API `18000`, nginx frontend (`web` profile) `18080`,
   Vite `5173`, Mailpit UI `8025` / SMTP `11025`, RustFS `19000`/`19001`. AMQP and SMTP are
   published so the API and a worker can also run on the host. Inside the Compose network
   services use their normal ports. Final list confirmed in Session 0.5.

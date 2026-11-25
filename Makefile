@@ -1,5 +1,6 @@
 .DEFAULT_GOAL := help
-.PHONY: help up down build ps logs restart migrate revision shell test test-unit lint fmt
+.PHONY: help up up-full down build ps logs restart migrate revision shell test test-unit lint fmt \
+	fe-dev fe-test fe-lint gen-api
 
 COMPOSE := docker compose
 BACKEND := cd backend && uv run
@@ -10,8 +11,11 @@ help: ## List targets
 up: ## Start the stack (API on http://localhost:18000)
 	$(COMPOSE) up -d --build
 
+up-full: ## Everything in containers incl. nginx frontend on http://localhost:18080
+	$(COMPOSE) --profile web up -d --build
+
 down: ## Stop the stack, keep data volumes
-	$(COMPOSE) down
+	$(COMPOSE) --profile web down
 
 build: ## Rebuild backend images
 	$(COMPOSE) build migrate
@@ -49,3 +53,15 @@ lint: ## Ruff + format check + mypy
 fmt: ## Auto-fix lint and format
 	$(BACKEND) ruff check --fix .
 	$(BACKEND) ruff format .
+
+fe-dev: ## Frontend dev server on http://localhost:5173 (needs `make up`)
+	cd frontend && npm run dev
+
+fe-test: ## Frontend unit tests
+	cd frontend && npx vitest run
+
+fe-lint: ## Frontend lint + type-check
+	cd frontend && npm run lint && npm run type-check
+
+gen-api: ## Regenerate frontend API types from the running backend's OpenAPI
+	cd frontend && npm run gen:api
