@@ -1,5 +1,6 @@
 """In-memory implementations of the integration ports for tests."""
 
+import uuid
 from collections.abc import AsyncIterator, Sequence
 from dataclasses import dataclass, field
 from datetime import timedelta
@@ -97,3 +98,15 @@ class FakeEmbeddings:
     async def embed(self, texts: Sequence[str], *, kind: EmbeddingKind) -> list[list[float]]:
         # Deterministic: the same text always maps to the same vector.
         return [[float((hash(text) >> i) & 1) for i in range(self.size)] for text in texts]
+
+
+@dataclass
+class FakeAuthMailer:
+    verification: list[uuid.UUID] = field(default_factory=list)
+    password_reset: list[uuid.UUID] = field(default_factory=list)
+
+    async def send_verification(self, user_id: uuid.UUID) -> None:
+        self.verification.append(user_id)
+
+    async def send_password_reset(self, user_id: uuid.UUID) -> None:
+        self.password_reset.append(user_id)

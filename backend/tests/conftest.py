@@ -18,6 +18,8 @@ from app.core.config import Settings
 from app.db.redis import create_redis
 from app.db.session import create_engine, get_session
 from app.main import create_app
+from app.modules.auth.service import get_auth_mailer
+from tests.fakes import FakeAuthMailer
 
 # A logical Redis DB and a database only tests use, so tests never see or touch dev data.
 TEST_REDIS_DB = 15
@@ -133,13 +135,21 @@ async def db_session(db_connection: AsyncConnection) -> AsyncIterator[AsyncSessi
 
 
 @pytest.fixture
-async def api(app: FastAPI, db_session: AsyncSession, redis: Redis) -> AsyncIterator[AsyncClient]:
+def mailer() -> FakeAuthMailer:
+    return FakeAuthMailer()
+
+
+@pytest.fixture
+async def api(
+    app: FastAPI, db_session: AsyncSession, redis: Redis, mailer: FakeAuthMailer
+) -> AsyncIterator[AsyncClient]:
     """Client whose requests share the test's rolled-back DB transaction and the test Redis DB."""
 
     async def session_override() -> AsyncIterator[AsyncSession]:
         yield db_session
 
     app.dependency_overrides[get_session] = session_override
+    app.dependency_overrides[get_auth_mailer] = lambda: mailer
     async with (
         app.router.lifespan_context(app),
         # https: httpx (like a browser) never sends a Secure cookie over plain http.

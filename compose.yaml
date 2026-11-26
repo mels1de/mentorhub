@@ -17,6 +17,8 @@ x-backend: &backend
     REDIS_PORT: 6379
     RABBITMQ_HOST: rabbitmq
     RABBITMQ_PORT: 5672
+    SMTP_HOST: mailpit
+    SMTP_PORT: 1025
   volumes:
     - ./backend:/app
 

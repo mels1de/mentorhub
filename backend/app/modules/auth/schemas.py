@@ -27,3 +27,16 @@ class TokenResponse(BaseModel):
     access_token: str
     token_type: Literal["bearer"] = "bearer"  # noqa: S105
     expires_in: int = Field(description="Access token lifetime in seconds.")
+
+
+class EmailVerificationRequest(BaseModel):
+    token: str = Field(min_length=1, max_length=256)
+
+
+class PasswordResetRequest(BaseModel):
+    email: EmailStr
+
+
+class PasswordResetConfirm(BaseModel):
+    token: str = Field(min_length=1, max_length=256)
+    new_password: str = Field(min_length=MIN_PASSWORD_LENGTH, max_length=MAX_PASSWORD_LENGTH)

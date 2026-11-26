@@ -74,6 +74,18 @@ class Settings(BaseSettings):
         password = quote(self.rabbitmq_password.get_secret_value(), safe="")
         return f"amqp://{user}:{password}@{self.rabbitmq_host}:{self.rabbitmq_port}//"
 
+    smtp_host: str = "localhost"
+    smtp_port: int = Field(default=11025, ge=1, le=65535)
+    smtp_username: str | None = None
+    smtp_password: SecretStr | None = None
+    smtp_start_tls: bool = False
+    email_from: str = "MentorHub <no-reply@mentorhub.local>"
+    # Links in emails point here (the SPA), not at the API.
+    frontend_url: str = "http://localhost:5173"
+
+    email_verification_ttl_hours: int = Field(default=24, ge=1, le=168)
+    password_reset_ttl_minutes: int = Field(default=30, ge=5, le=1440)
+
     access_token_ttl_minutes: int = Field(default=15, ge=1, le=60)
     refresh_token_ttl_days: int = Field(default=7, ge=1, le=30)
     # Browsers treat http://localhost as a secure context, so Secure cookies work locally too.
