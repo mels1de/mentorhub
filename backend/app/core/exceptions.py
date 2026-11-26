@@ -68,3 +68,16 @@ class BusinessRuleError(AppError):
     status_code = 422
     code = "business_rule_violation"
     title = "Unprocessable Content"
+
+
+class TooManyRequestsError(AppError):
+    status_code = 429
+    code = "rate_limited"
+    title = "Too Many Requests"
+
+    def __init__(self, detail: str | None = None, *, retry_after: int) -> None:
+        super().__init__(
+            detail,
+            extensions={"retry_after": retry_after},
+            headers={"Retry-After": str(retry_after)},
+        )

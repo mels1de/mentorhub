@@ -1,4 +1,4 @@
-from typing import Literal
+from typing import Annotated, Literal
 
 from pydantic import BaseModel, EmailStr, Field
 
@@ -24,6 +24,7 @@ class LoginRequest(BaseModel):
 
 
 class TokenResponse(BaseModel):
+    status: Literal["authenticated"] = "authenticated"
     access_token: str
     token_type: Literal["bearer"] = "bearer"  # noqa: S105
     expires_in: int = Field(description="Access token lifetime in seconds.")
@@ -40,3 +41,25 @@ class PasswordResetRequest(BaseModel):
 class PasswordResetConfirm(BaseModel):
     token: str = Field(min_length=1, max_length=256)
     new_password: str = Field(min_length=MIN_PASSWORD_LENGTH, max_length=MAX_PASSWORD_LENGTH)
+
+
+class OtpChallengeResponse(BaseModel):
+    status: Literal["otp_required"] = "otp_required"
+    challenge_id: str
+    expires_in: int = Field(description="Seconds until the emailed code expires.")
+
+
+type LoginResponse = Annotated[TokenResponse | OtpChallengeResponse, Field(discriminator="status")]
+
+
+class OtpVerifyRequest(BaseModel):
+    challenge_id: str = Field(min_length=1, max_length=64)
+    code: str = Field(pattern=r"^\d{6}$")
+
+
+class OtpResendRequest(BaseModel):
+    challenge_id: str = Field(min_length=1, max_length=64)
+
+
+class TwoFactorToggleRequest(BaseModel):
+    password: str = Field(min_length=1, max_length=MAX_PASSWORD_LENGTH)

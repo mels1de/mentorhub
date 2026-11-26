@@ -19,12 +19,12 @@ MAX_BACKOFF_SECONDS = 1800
 MAX_RETRIES = 5
 
 
-async def _run(job: email_jobs.EmailJob, user_id: str, settings: Settings) -> bool:
+async def _run(job: email_jobs.EmailJob, subject: object, settings: Settings) -> bool:
     async with task_resources(settings) as resources:
         redis: Redis = resources.redis
         sender: EmailSender = SmtpEmailSender(settings)
         return await job(
-            uuid.UUID(user_id),
+            subject,
             users=UserService(resources.session),
             redis=redis,
             sender=sender,
@@ -41,7 +41,7 @@ async def _run(job: email_jobs.EmailJob, user_id: str, settings: Settings) -> bo
     max_retries=MAX_RETRIES,
 )
 def send_verification(user_id: str) -> bool:
-    return asyncio.run(_run(email_jobs.send_verification, user_id, get_settings()))
+    return asyncio.run(_run(email_jobs.send_verification, uuid.UUID(user_id), get_settings()))
 
 
 @celery_app.task(
@@ -53,4 +53,17 @@ def send_verification(user_id: str) -> bool:
     max_retries=MAX_RETRIES,
 )
 def send_password_reset(user_id: str) -> bool:
-    return asyncio.run(_run(email_jobs.send_password_reset, user_id, get_settings()))
+    return asyncio.run(_run(email_jobs.send_password_reset, uuid.UUID(user_id), get_settings()))
+
+
+@celery_app.task(
+    name="emails.send_login_code",
+    autoretry_for=RETRY_ON,
+    retry_backoff=5,
+    retry_backoff_max=60,
+    retry_jitter=True,
+    max_retries=MAX_RETRIES,
+)
+def send_login_code(challenge_id: str) -> bool:
+    # Short backoff: the user is waiting on the login screen and the code lives 10 minutes.
+    return asyncio.run(_run(email_jobs.send_login_code, challenge_id, get_settings()))

@@ -44,10 +44,13 @@ class UserService:
             raise EmailTakenError("This email is already registered.") from exc
         return user
 
-    async def record_login(self, user: User, *, new_password_hash: str | None) -> None:
+    async def record_login(self, user: User) -> None:
         user.last_login_at = datetime.now(UTC)
-        if new_password_hash is not None:
-            user.password_hash = new_password_hash
+        await self.session.commit()
+
+    async def replace_password_hash(self, user: User, password_hash: str) -> None:
+        """Store a re-hash of the same password (stronger parameters), not a new password."""
+        user.password_hash = password_hash
         await self.session.commit()
 
     async def set_password(self, user: User, password: str) -> None:
@@ -56,6 +59,10 @@ class UserService:
 
     async def mark_email_verified(self, user: User) -> None:
         user.is_email_verified = True
+        await self.session.commit()
+
+    async def set_2fa(self, user: User, *, enabled: bool) -> None:
+        user.is_2fa_enabled = enabled
         await self.session.commit()
 
     async def page(self, params: PageParams) -> tuple[list[User], int]:

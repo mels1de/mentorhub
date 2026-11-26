@@ -33,4 +33,5 @@ class User(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     )
     is_active: Mapped[bool] = mapped_column(default=True, server_default=true())
     is_email_verified: Mapped[bool] = mapped_column(default=False, server_default=false())
+    is_2fa_enabled: Mapped[bool] = mapped_column(default=False, server_default=false())
     last_login_at: Mapped[datetime | None]

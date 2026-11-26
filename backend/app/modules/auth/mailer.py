@@ -17,6 +17,8 @@ class AuthMailer(Protocol):
 
     async def send_password_reset(self, user_id: uuid.UUID) -> None: ...
 
+    async def send_login_code(self, challenge_id: str) -> None: ...
+
 
 class CeleryAuthMailer:
     async def send_verification(self, user_id: uuid.UUID) -> None:
@@ -25,13 +27,16 @@ class CeleryAuthMailer:
     async def send_password_reset(self, user_id: uuid.UUID) -> None:
         await self._enqueue(tasks.send_password_reset, user_id)
 
+    async def send_login_code(self, challenge_id: str) -> None:
+        await self._enqueue(tasks.send_login_code, challenge_id)
+
     @staticmethod
-    async def _enqueue(task: Task[Any, Any], user_id: uuid.UUID) -> None:
+    async def _enqueue(task: Task[Any, Any], subject: uuid.UUID | str) -> None:
         try:
             # .delay() does blocking network I/O to RabbitMQ; keep it off the event loop.
-            await run_in_threadpool(task.delay, str(user_id))
+            await run_in_threadpool(task.delay, str(subject))
         except Exception:
             # The DB change is already committed; a lost email is recoverable (resend), a 500
             # after a successful registration is not. A transactional outbox (Phase 3) closes
             # this gap properly.
-            logger.exception("email_enqueue_failed", task=task.name, user_id=str(user_id))
+            logger.exception("email_enqueue_failed", task=task.name, subject=str(subject))

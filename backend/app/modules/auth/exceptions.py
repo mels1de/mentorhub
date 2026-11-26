@@ -1,4 +1,9 @@
-from app.core.exceptions import AuthenticationError, BusinessRuleError, PermissionDeniedError
+from app.core.exceptions import (
+    AuthenticationError,
+    BusinessRuleError,
+    PermissionDeniedError,
+    TooManyRequestsError,
+)
 
 
 class InvalidCredentialsError(AuthenticationError):
@@ -19,3 +24,15 @@ class AccountDisabledError(PermissionDeniedError):
 
 class InvalidLinkError(BusinessRuleError):
     code = "invalid_link"
+
+
+class InvalidOtpError(AuthenticationError):
+    code = "invalid_otp"
+
+
+class OtpLockedError(TooManyRequestsError):
+    code = "otp_locked"
+
+
+class EmailNotVerifiedError(BusinessRuleError):
+    code = "email_not_verified"
