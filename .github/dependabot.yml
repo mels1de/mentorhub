@@ -1,15 +1,24 @@
 version: 2
 updates:
-  # One grouped PR per ecosystem per week instead of one per package.
+  # Minor + patch updates are grouped into one weekly PR per ecosystem; every major update
+  # gets its own PR so one breaking release cannot block the safe ones.
   - package-ecosystem: uv
     directory: /backend
     schedule: { interval: weekly }
-    groups: { python: { patterns: ["*"] } }
+    groups: { python: { update-types: [minor, patch] } }
 
   - package-ecosystem: npm
     directory: /frontend
     schedule: { interval: weekly }
-    groups: { npm: { patterns: ["*"] } }
+    groups: { npm: { update-types: [minor, patch] } }
+    ignore:
+      # typescript-eslint does not support TS 7 yet; @types/node follows .node-version (24).
+      - dependency-name: typescript
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "@types/node"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "@tsconfig/node*"
+        update-types: ["version-update:semver-major"]
 
   - package-ecosystem: github-actions
     directory: /
@@ -19,9 +28,13 @@ updates:
   - package-ecosystem: docker
     directories: [/backend, /frontend, /infra/postgres]
     schedule: { interval: weekly }
-    groups: { docker: { patterns: ["*"] } }
+    groups: { docker: { update-types: [minor, patch] } }
+    ignore:
+      # Node major is pinned to .node-version (24 LTS) everywhere: host, CI and image.
+      - dependency-name: node
+        update-types: ["version-update:semver-major"]
 
   - package-ecosystem: docker-compose
     directory: /
     schedule: { interval: weekly }
-    groups: { compose: { patterns: ["*"] } }
+    groups: { compose: { update-types: [minor, patch] } }
