@@ -5,7 +5,14 @@ from fastapi import APIRouter, Cookie, Response, status
 from app.core.config import Settings
 from app.core.dependencies import SettingsDep
 from app.modules.auth.dependencies import CurrentUser
-from app.modules.auth.schemas import LoginRequest, RegisterRequest, TokenResponse
+from app.modules.auth.schemas import (
+    EmailVerificationRequest,
+    LoginRequest,
+    PasswordResetConfirm,
+    PasswordResetRequest,
+    RegisterRequest,
+    TokenResponse,
+)
 from app.modules.auth.service import AuthServiceDep, IssuedTokens
 from app.modules.users.schemas import UserRead
 
@@ -68,3 +75,23 @@ async def logout(response: Response, auth: AuthServiceDep, token: RefreshCookie 
 async def logout_all(response: Response, user: CurrentUser, auth: AuthServiceDep) -> None:
     await auth.logout_everywhere(user)
     response.delete_cookie(REFRESH_COOKIE, path=REFRESH_COOKIE_PATH)
+
+
+@router.post("/verify-email", status_code=status.HTTP_204_NO_CONTENT)
+async def verify_email(data: EmailVerificationRequest, auth: AuthServiceDep) -> None:
+    await auth.verify_email(data.token)
+
+
+@router.post("/verify-email/resend", status_code=status.HTTP_202_ACCEPTED)
+async def resend_verification(user: CurrentUser, auth: AuthServiceDep) -> None:
+    await auth.resend_verification(user)
+
+
+@router.post("/password-reset", status_code=status.HTTP_202_ACCEPTED)
+async def request_password_reset(data: PasswordResetRequest, auth: AuthServiceDep) -> None:
+    await auth.request_password_reset(data)
+
+
+@router.post("/password-reset/confirm", status_code=status.HTTP_204_NO_CONTENT)
+async def confirm_password_reset(data: PasswordResetConfirm, auth: AuthServiceDep) -> None:
+    await auth.reset_password(data)

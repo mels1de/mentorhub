@@ -1,4 +1,4 @@
-from app.core.exceptions import AuthenticationError, PermissionDeniedError
+from app.core.exceptions import AuthenticationError, BusinessRuleError, PermissionDeniedError
 
 
 class InvalidCredentialsError(AuthenticationError):
@@ -15,3 +15,7 @@ class RefreshTokenReusedError(AuthenticationError):
 
 class AccountDisabledError(PermissionDeniedError):
     code = "account_disabled"
+
+
+class InvalidLinkError(BusinessRuleError):
+    code = "invalid_link"

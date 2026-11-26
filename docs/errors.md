@@ -36,6 +36,10 @@ from the first page (omit `cursor`).
 ## business_rule_violation
 `422`. Input is well-formed but breaks a domain rule.
 
+## invalid_link
+`422`. An email link (verification, password reset) is unknown, expired, already used, or
+replaced by a newer link. Ask for a new email.
+
 ## not_authenticated
 `401`. Missing or invalid credentials. Carries `WWW-Authenticate: Bearer`.
 

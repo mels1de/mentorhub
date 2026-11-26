@@ -11,7 +11,7 @@ from app.core.logging import configure_logging
 QUEUES = ("default", "emails", "ai")
 
 # Modules whose tasks the worker registers; feature modules add their `tasks` here.
-TASK_MODULES = ["app.worker.system"]
+TASK_MODULES = ["app.worker.system", "app.modules.auth.tasks"]
 
 
 def create_celery(settings: Settings) -> Celery:
