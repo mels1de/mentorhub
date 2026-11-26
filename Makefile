@@ -1,5 +1,5 @@
 .DEFAULT_GOAL := help
-.PHONY: help up up-full down build ps logs restart migrate revision shell test test-unit lint fmt \
+.PHONY: help up up-full down build ps logs restart migrate revision create-admin shell test test-unit lint fmt \
 	fe-dev fe-test fe-lint gen-api
 
 COMPOSE := docker compose
@@ -35,6 +35,10 @@ migrate: ## Apply migrations
 revision: ## Autogenerate a migration: make revision m="add users"
 	@test -n "$(m)" || (echo 'usage: make revision m="message"' && exit 1)
 	$(COMPOSE) run --rm migrate alembic revision --autogenerate -m "$(m)"
+
+create-admin: ## Create an admin account: make create-admin email=you@example.com
+	@test -n "$(email)" || (echo 'usage: make create-admin email=you@example.com' && exit 1)
+	$(COMPOSE) exec backend python -m app.modules.users.cli create-admin "$(email)"
 
 shell: ## Shell in the API container
 	$(COMPOSE) exec backend sh

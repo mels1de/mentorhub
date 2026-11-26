@@ -10,7 +10,10 @@ dependencies = [
     "celery[redis]>=5.6",
     "fastapi>=0.162.0",
     "prometheus-fastapi-instrumentator>=8.1.0",
+    "pwdlib[argon2]>=0.4.2",
     "pydantic-settings>=2.16.2",
+    "pydantic[email]>=2.14.2",
+    "pyjwt>=2.15.1",
     "redis>=8.1",
     "sqlalchemy[asyncio]>=2.1",
     "structlog>=26.1.0",
@@ -39,7 +42,7 @@ select = [
 # No "TC": it moves imports under TYPE_CHECKING, but FastAPI/Pydantic need them at runtime.
 
 [tool.ruff.lint.per-file-ignores]
-"tests/**" = ["S101"]
+"tests/**" = ["S101", "S105", "S106"]
 
 [tool.mypy]
 python_version = "3.14"

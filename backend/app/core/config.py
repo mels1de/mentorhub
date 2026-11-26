@@ -51,10 +51,12 @@ class Settings(BaseSettings):
 
     redis_host: str = "localhost"
     redis_port: int = Field(default=16379, ge=1, le=65535)
+    # Cache, tokens and rate limits. Tests use 15 and flush it; 1 is the Celery result backend.
+    redis_db: int = Field(default=0, ge=0, le=15)
 
     @property
     def redis_url(self) -> str:
-        return f"redis://{self.redis_host}:{self.redis_port}/0"
+        return f"redis://{self.redis_host}:{self.redis_port}/{self.redis_db}"
 
     @property
     def celery_result_backend_url(self) -> str:
@@ -71,6 +73,11 @@ class Settings(BaseSettings):
         user = quote(self.rabbitmq_user, safe="")
         password = quote(self.rabbitmq_password.get_secret_value(), safe="")
         return f"amqp://{user}:{password}@{self.rabbitmq_host}:{self.rabbitmq_port}//"
+
+    access_token_ttl_minutes: int = Field(default=15, ge=1, le=60)
+    refresh_token_ttl_days: int = Field(default=7, ge=1, le=30)
+    # Browsers treat http://localhost as a secure context, so Secure cookies work locally too.
+    cookie_secure: bool = True
 
     @model_validator(mode="after")
     def _refuse_insecure_production_config(self) -> Self:
