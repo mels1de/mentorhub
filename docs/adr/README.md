@@ -17,3 +17,4 @@ decision → alternatives → consequences. New decision = new file, never rewri
 | [0009](0009-celery-queue-topology.md) | Celery queues: classic durable, routed by task-name prefix | Accepted |
 | [0010](0010-auth-implementation.md) | Auth: users table, refresh-token families with reuse detection, per-request user load | Accepted |
 | [0011](0011-email-links-and-tasks.md) | Email links: single-use hashed tokens created in the worker | Accepted |
+| [0012](0012-email-otp-and-rate-limits.md) | Email OTP as an opt-in second factor; fixed-window rate limits | Accepted |

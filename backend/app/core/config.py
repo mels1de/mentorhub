@@ -86,6 +86,12 @@ class Settings(BaseSettings):
     email_verification_ttl_hours: int = Field(default=24, ge=1, le=168)
     password_reset_ttl_minutes: int = Field(default=30, ge=5, le=1440)
 
+    rate_limit_enabled: bool = True
+
+    otp_ttl_minutes: int = Field(default=10, ge=1, le=30)
+    otp_max_attempts: int = Field(default=5, ge=1, le=10)
+    otp_lockout_minutes: int = Field(default=15, ge=1, le=1440)
+
     access_token_ttl_minutes: int = Field(default=15, ge=1, le=60)
     refresh_token_ttl_days: int = Field(default=7, ge=1, le=30)
     # Browsers treat http://localhost as a secure context, so Secure cookies work locally too.

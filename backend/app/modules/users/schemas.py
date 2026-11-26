@@ -14,4 +14,5 @@ class UserRead(BaseModel):
     role: UserRole
     is_active: bool
     is_email_verified: bool
+    is_2fa_enabled: bool
     created_at: datetime

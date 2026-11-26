@@ -56,6 +56,10 @@ the login page.
 `401`. An already-exchanged refresh token was presented again. The whole login session was
 revoked because the token may have been stolen; the user has to log in again.
 
+## invalid_otp
+`401`. The login code is wrong, or the challenge expired. Extension `attempts_left` when the
+code was wrong.
+
 ## permission_denied
 `403`. Authenticated, but not allowed to do this.
 
@@ -67,6 +71,17 @@ revoked because the token may have been stolen; the user has to log in again.
 
 ## conflict
 `409`. The request conflicts with the current state (duplicate, concurrent change).
+
+## email_not_verified
+`422`. 2FA sends codes by email, so it can be enabled only after the email is verified.
+
+## rate_limited
+`429`. Too many requests from this client (or for this account). Carries `Retry-After`
+(seconds) and the same value as the `retry_after` extension.
+
+## otp_locked
+`429`. Too many wrong login codes; the account can't finish a login until `Retry-After`
+seconds have passed.
 
 ## email_taken
 `409`. Registration with an email that already has an account (case-insensitive).

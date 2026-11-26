@@ -13,8 +13,9 @@ from redis.asyncio import Redis
 
 from app.core.config import Settings
 from app.integrations.ports import EmailSender
-from app.modules.auth.emails import password_reset_email, verification_email
+from app.modules.auth.emails import login_code_email, password_reset_email, verification_email
 from app.modules.auth.one_time_tokens import OneTimeTokenStore, TokenPurpose
+from app.modules.auth.otp import otp_store
 from app.modules.users.service import UserService
 
 logger = structlog.stdlib.get_logger(__name__)
@@ -54,4 +55,19 @@ async def send_password_reset(
     token = await reset_tokens(redis, settings).issue(user.id)
     await sender.send(password_reset_email(user.email, token, settings))
     logger.info("password_reset_email_sent", user_id=str(user.id))
+    return True
+
+
+async def send_login_code(
+    challenge_id: str, *, users: UserService, redis: Redis, sender: EmailSender, settings: Settings
+) -> bool:
+    issued = await otp_store(redis, settings).issue_code(challenge_id)
+    if issued is None:
+        return False
+    user_id, code = issued
+    user = await users.find(user_id)
+    if user is None or not user.is_active:
+        return False
+    await sender.send(login_code_email(user.email, code, settings))
+    logger.info("login_code_sent", user_id=str(user.id))
     return True

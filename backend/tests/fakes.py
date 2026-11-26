@@ -104,9 +104,13 @@ class FakeEmbeddings:
 class FakeAuthMailer:
     verification: list[uuid.UUID] = field(default_factory=list)
     password_reset: list[uuid.UUID] = field(default_factory=list)
+    login_codes: list[str] = field(default_factory=list)
 
     async def send_verification(self, user_id: uuid.UUID) -> None:
         self.verification.append(user_id)
 
     async def send_password_reset(self, user_id: uuid.UUID) -> None:
         self.password_reset.append(user_id)
+
+    async def send_login_code(self, challenge_id: str) -> None:
+        self.login_codes.append(challenge_id)

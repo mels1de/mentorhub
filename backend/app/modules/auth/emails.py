@@ -44,3 +44,17 @@ def password_reset_email(to: str, token: str, settings: Settings) -> EmailMessag
         text=f"{paragraph}\n\n{link}\n\n{footer}\n",
         html=_html(paragraph, link, "Choose a new password", footer),
     )
+
+
+def login_code_email(to: str, code: str, settings: Settings) -> EmailMessage:
+    minutes = settings.otp_ttl_minutes
+    paragraph = f"Your MentorHub login code is {code}."
+    footer = (
+        f"It is valid for {minutes} minutes. If you didn't try to log in, change your password."
+    )
+    return EmailMessage(
+        to=to,
+        subject=f"{code} is your login code",
+        text=f"{paragraph}\n\n{footer}\n",
+        html=f"<p>{escape(paragraph)}</p><p>{escape(footer)}</p>",
+    )
