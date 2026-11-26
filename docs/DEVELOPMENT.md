@@ -111,4 +111,15 @@ Queues and messages: RabbitMQ UI on <http://localhost:15673> (`mentorhub` / `men
 `.github/workflows/ci.yml` runs on every PR and on `main`: backend (ruff, mypy, migrations
 round-trip, pytest with Postgres, Redis, RabbitMQ), frontend (lint, format, type-check, Vitest,
 build), actionlint, and builds both prod images (pushed to GHCR only from `main`).
-Dependabot opens one grouped PR per ecosystem weekly.
+
+## Dependency updates
+
+Dependabot runs weekly. Minor and patch updates arrive as one grouped PR per ecosystem;
+every major update gets its own PR, so one breaking release cannot block the safe ones.
+
+- Merge a grouped PR when CI is green. CI does not start RustFS or Mailpit, so for the
+  `compose` group also run `make up` and check `/health/ready` locally.
+- A major PR needs its changelog read and, if needed, code changes on the same branch.
+- Node stays on the major in `.node-version` (24 LTS) on the host, in CI and in the image;
+  majors of `node`, `@types/node` and `@tsconfig/node*` are ignored until we move all three.
+- `typescript` majors are ignored until `typescript-eslint` supports them.
