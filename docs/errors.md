@@ -39,14 +39,33 @@ from the first page (omit `cursor`).
 ## not_authenticated
 `401`. Missing or invalid credentials. Carries `WWW-Authenticate: Bearer`.
 
+## invalid_credentials
+`401`. Wrong email or password. The same answer for an unknown email, so it can't be used to
+find out who is registered.
+
+## invalid_token
+`401`. The access token is missing, malformed or expired, or the refresh cookie is missing,
+unknown or already used. Clients call `POST /api/v1/auth/refresh` once, then send the user to
+the login page.
+
+## refresh_token_reused
+`401`. An already-exchanged refresh token was presented again. The whole login session was
+revoked because the token may have been stolen; the user has to log in again.
+
 ## permission_denied
 `403`. Authenticated, but not allowed to do this.
+
+## account_disabled
+`403`. The account exists but was deactivated by an admin.
 
 ## not_found
 `404`. The resource does not exist (or is hidden from this user).
 
 ## conflict
 `409`. The request conflicts with the current state (duplicate, concurrent change).
+
+## email_taken
+`409`. Registration with an email that already has an account (case-insensitive).
 
 ## upstream_error
 `502`. An external service (storage, email, captcha, maps, LLM) returned an unusable answer.

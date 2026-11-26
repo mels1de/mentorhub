@@ -89,6 +89,18 @@ upgrade, so every migration must be reversible.
 | `make fe-lint` | oxlint + ESLint (auto-fix) + `vue-tsc` |
 | `uvx pre-commit run --all-files` | All git hooks on the whole repo |
 
+Integration tests never touch dev data: they create and migrate a separate `mentorhub_test`
+database on the first run, run each test inside a transaction that is rolled back, and use
+Redis DB 15, flushed after every test.
+
+## Accounts
+
+Register mentees and mentors through the API or the UI. Admins only from the CLI:
+
+```bash
+make create-admin email=admin@example.com   # prompts for the password
+```
+
 ## API types for the frontend
 
 After changing the API, with the backend running:

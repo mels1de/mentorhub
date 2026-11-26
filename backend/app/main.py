@@ -13,6 +13,10 @@ from app.core.openapi import install_problem_openapi
 from app.core.problem_details import register_exception_handlers
 from app.db.redis import create_redis
 from app.db.session import create_engine, create_session_factory
+from app.modules.auth import router as auth_router
+from app.modules.users import router as users_router
+
+API_PREFIX = "/api/v1"
 
 logger = structlog.stdlib.get_logger(__name__)
 
@@ -41,8 +45,11 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     configure_logging(settings)
 
     app = FastAPI(title=settings.app_name, debug=settings.debug, lifespan=make_lifespan(settings))
+    app.state.settings = settings
     register_exception_handlers(app)
     app.include_router(health.router)
+    app.include_router(auth_router.router, prefix=API_PREFIX)
+    app.include_router(users_router.router, prefix=API_PREFIX)
     install_problem_openapi(app)
     # Before our middleware, so it is the innermost one.
     setup_metrics(app)
